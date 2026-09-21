@@ -1,0 +1,8 @@
+interface:
+  display_name: "YOUIBOT 公司 PPT"
+  short_description: "先确认大纲和 HTML，再生成可编辑公司 PPT"
+  icon_large: "./assets/preview.png"
+  brand_color: "#EE742A"
+  default_prompt: "使用 $artifact-template-youibot-ppt 制作 YOUIBOT 公司格式演示文稿。先读取并审计我提供的全部资料，集中补问缺失信息；确认需求简报和页级大纲后，才能生成可备注的 HTML 审阅稿。首页和章节页使用 Skill 内置标准组件。只有在我明确确认‘HTML 已定稿，可以生成 PPT’后，才能生成可编辑 PPTX。"
+policy:
+  allow_implicit_invocation: true

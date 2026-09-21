@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YOUIBOT PPT HTML 审阅稿</title>
+  <style>
+    /* === THEME: replace deck metadata and slide content, retain review UI === */
+    :root {
+      --brand-orange: #ee742a;
+      --brand-dark: #4f4d50;
+      --brand-gray: #686769;
+      --canvas: #f3f3f1;
+      --panel: #ffffff;
+      --line: #deddd9;
+      --stage-bg: #202022;
+      --slide-bg: #ffffff;
+      --review-width: 390px;
+      --font: "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { font-family: var(--font); color: var(--brand-dark); background: var(--canvas); }
+
+    /* === FIXED 16:9 STAGE: slide content never reflows === */
+    .deck-viewport {
+      position: fixed;
+      inset: 0 var(--review-width) 0 0;
+      overflow: hidden;
+      background: var(--stage-bg);
+    }
+    .deck-stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      transform-origin: 0 0;
+      background: var(--slide-bg);
+    }
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      display: block;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      background: var(--slide-bg);
+    }
+    .slide.active,
+    .slide.visible {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 1;
+    }
+    img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+
+    /* === DEMO COMPANY SLIDES: replace these rules/content per approved outline === */
+    .company-slide { padding: 72px 92px 70px; }
+    .company-slide::before {
+      content: "YOUIBOT";
+      position: absolute;
+      top: 42px;
+      right: 72px;
+      color: var(--brand-orange);
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .company-slide::after {
+      content: attr(data-slide-id);
+      position: absolute;
+      left: 92px;
+      bottom: 34px;
+      color: #aaa7a4;
+      font-size: 18px;
+    }
+    .company-slide h1 { margin: 210px 0 28px; max-width: 1380px; font-size: 86px; line-height: 1.14; }
+    .company-slide h2 { margin: 48px 0 34px; font-size: 54px; line-height: 1.2; }
+    .company-slide p { max-width: 1260px; margin: 0; color: var(--brand-gray); font-size: 30px; line-height: 1.65; }
+    .orange-rule { width: 128px; height: 12px; margin-top: 52px; background: var(--brand-orange); }
+    .demo-card {
+      margin-top: 48px;
+      padding: 42px 48px;
+      width: 1120px;
+      border-left: 10px solid var(--brand-orange);
+      background: #f6f5f2;
+      font-size: 30px;
+      line-height: 1.55;
+    }
+
+    /* === REVIEW PANEL: always outside the slide stage === */
+    .review-panel {
+      position: fixed;
+      inset: 0 0 0 auto;
+      width: var(--review-width);
+      padding: 22px;
+      overflow-y: auto;
+      border-left: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: -12px 0 32px rgba(0, 0, 0, .12);
+      z-index: 1000;
+    }
+    .review-kicker { color: var(--brand-orange); font-size: 12px; font-weight: 800; letter-spacing: 1.8px; }
+    .review-panel h1 { margin: 7px 0 6px; font-size: 22px; line-height: 1.25; }
+    .review-help { margin: 0 0 20px; color: var(--brand-gray); font-size: 13px; line-height: 1.5; }
+    .slide-meta { padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: #faf9f7; }
+    .slide-position { color: var(--brand-orange); font-size: 13px; font-weight: 800; }
+    .slide-title { margin-top: 5px; font-size: 17px; font-weight: 750; line-height: 1.35; }
+    label { display: block; margin: 18px 0 7px; font-size: 13px; font-weight: 750; }
+    select, textarea, button { font: inherit; }
+    select, textarea {
+      width: 100%;
+      border: 1px solid #cbc9c5;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--brand-dark);
+    }
+    select { height: 42px; padding: 0 11px; }
+    textarea { min-height: 210px; padding: 12px; resize: vertical; line-height: 1.55; }
+    select:focus, textarea:focus { outline: 3px solid rgba(238, 116, 42, .18); border-color: var(--brand-orange); }
+    .saved { min-height: 18px; margin-top: 7px; color: #74806f; font-size: 12px; }
+    .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 16px; }
+    button {
+      min-height: 42px;
+      padding: 9px 11px;
+      border: 1px solid #c9c7c3;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--brand-dark);
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--brand-orange); color: var(--brand-orange); }
+    button.primary { border-color: var(--brand-orange); background: var(--brand-orange); color: #fff; }
+    button.danger { color: #a53a2a; }
+    .review-note { margin-top: 18px; color: #7e7b77; font-size: 12px; line-height: 1.55; }
+
+    /* === SMALL VIEWPORT: slide remains fixed; panel becomes a drawer === */
+    @media (max-width: 900px) {
+      :root { --review-width: min(88vw, 390px); }
+      .deck-viewport { right: 0; }
+      .review-panel { transform: translateX(calc(100% - 44px)); transition: transform .2s ease; }
+      .review-panel:hover, .review-panel:focus-within { transform: translateX(0); }
+      .review-panel::before { content: "批注"; position: absolute; left: 8px; top: 45%; writing-mode: vertical-rl; color: var(--brand-orange); font-weight: 800; }
+    }
+
+    /* === PRINT: review UI never becomes slide content === */
+    @media print {
+      html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+      .deck-viewport { position: static; overflow: visible; background: #fff; }
+      .deck-stage { position: static; width: auto; height: auto; transform: none !important; }
+      .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; break-after: page; }
+      .review-panel { display: none !important; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body data-deck-id="REPLACE_WITH_UNIQUE_DECK_ID" data-deck-title="REPLACE_WITH_DECK_TITLE">
+  <div class="deck-viewport" aria-label="演示文稿预览">
+    <main class="deck-stage" id="deckStage">
+      <!-- Replace demo sections with approved slides. Preserve class, stable ID and title. -->
+      <section class="slide company-slide active" data-slide-id="S01" data-slide-title="封面">
+        <h1>替换为已确认的演示标题</h1>
+        <p>HTML 是审阅稿；最终 PPT 仅在确认后生成。</p>
+        <div class="orange-rule"></div>
+      </section>
+      <section class="slide company-slide" data-slide-id="S02" data-slide-title="内容示例">
+        <h2>逐页审阅内容与视觉</h2>
+        <div class="demo-card">在右侧选择状态并填写本页修改意见。所有内容自动保存在当前浏览器，可导出为 JSON 后交回修改。</div>
+      </section>
+    </main>
+  </div>
+
+  <aside class="review-panel" aria-label="逐页批注面板">
+    <div class="review-kicker">YOUIBOT REVIEW</div>
+    <h1>逐页审阅与批注</h1>
+    <p class="review-help">← → 翻页。意见自动保存在本机浏览器；完成后导出 JSON。</p>
+
+    <div class="slide-meta">
+      <div class="slide-position" id="slidePosition">第 1 / 1 页 · S01</div>
+      <div class="slide-title" id="slideTitle">页面标题</div>
+    </div>
+
+    <label for="reviewStatus">本页状态</label>
+    <select id="reviewStatus">
+      <option value="pending">待审阅</option>
+      <option value="needs_changes">需修改</option>
+      <option value="approved">已确认</option>
+    </select>
+
+    <label for="reviewComment">本页修改意见</label>
+    <textarea id="reviewComment" placeholder="例如：标题改为……；数据采用 8 月最终版；第二张图删除。"></textarea>
+    <div class="saved" id="savedMessage" aria-live="polite"></div>
+
+    <div class="button-row">
+      <button id="prevButton" type="button">上一页</button>
+      <button id="nextButton" type="button">下一页</button>
+      <button id="copyButton" type="button">复制全部意见</button>
+      <button id="exportButton" type="button" class="primary">导出批注 JSON</button>
+      <button id="clearButton" type="button" class="danger">清空本页</button>
+    </div>
+    <p class="review-note">“已确认”只代表单页审阅完成。最终生成 PPT 前，仍需在对话中明确确认“HTML 已定稿，可以生成 PPT”。</p>
+  </aside>
+
+  <script>
+    /* === PRESENTATION + REVIEW CONTROLLER === */
+    class ReviewDeck {
+      constructor() {
+        this.stage = document.getElementById('deckStage');
+        this.slides = Array.from(document.querySelectorAll('.slide'));
+        this.current = 0;
+        this.deckId = document.body.dataset.deckId || 'youibot-review';
+        this.deckTitle = document.body.dataset.deckTitle || document.title;
+        this.storageKey = `youibot-ppt-review:${this.deckId}`;
+        this.status = document.getElementById('reviewStatus');
+        this.comment = document.getElementById('reviewComment');
+        this.savedMessage = document.getElementById('savedMessage');
+        this.records = this.loadRecords();
+        this.bind();
+        this.scaleStage();
+        this.show(0);
+      }
+
+      bind() {
+        window.addEventListener('resize', () => this.scaleStage());
+        document.getElementById('prevButton').addEventListener('click', () => this.show(this.current - 1));
+        document.getElementById('nextButton').addEventListener('click', () => this.show(this.current + 1));
+        document.getElementById('exportButton').addEventListener('click', () => this.exportJson());
+        document.getElementById('copyButton').addEventListener('click', () => this.copyComments());
+        document.getElementById('clearButton').addEventListener('click', () => this.clearCurrent());
+        this.status.addEventListener('change', () => this.saveCurrent());
+        this.comment.addEventListener('input', () => this.saveCurrent());
+        document.addEventListener('keydown', event => {
+          if (event.target.matches('textarea, select, input')) return;
+          if (['ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); this.show(this.current + 1); }
+          if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); this.show(this.current - 1); }
+        });
+      }
+
+      scaleStage() {
+        const panelIsOverlay = window.matchMedia('(max-width: 900px)').matches;
+        const reviewWidth = panelIsOverlay ? 0 : 390;
+        const availableWidth = Math.max(320, window.innerWidth - reviewWidth);
+        const factor = Math.min(availableWidth / 1920, window.innerHeight / 1080);
+        const x = (availableWidth - 1920 * factor) / 2;
+        const y = (window.innerHeight - 1080 * factor) / 2;
+        this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+      }
+
+      show(index) {
+        this.current = Math.max(0, Math.min(index, this.slides.length - 1));
+        this.slides.forEach((slide, i) => {
+          slide.classList.toggle('active', i === this.current);
+          slide.classList.toggle('visible', i === this.current);
+        });
+        const slide = this.slides[this.current];
+        const id = slide.dataset.slideId;
+        document.getElementById('slidePosition').textContent = `第 ${this.current + 1} / ${this.slides.length} 页 · ${id}`;
+        document.getElementById('slideTitle').textContent = slide.dataset.slideTitle || '未命名页面';
+        const record = this.records[id] || { status: 'pending', comment: '' };
+        this.status.value = record.status;
+        this.comment.value = record.comment;
+        this.savedMessage.textContent = '';
+      }
+
+      loadRecords() {
+        try { return JSON.parse(localStorage.getItem(this.storageKey)) || {}; }
+        catch (_) { return {}; }
+      }
+
+      saveCurrent() {
+        const slide = this.slides[this.current];
+        this.records[slide.dataset.slideId] = {
+          status: this.status.value,
+          comment: this.comment.value,
+          updatedAt: new Date().toISOString()
+        };
+        localStorage.setItem(this.storageKey, JSON.stringify(this.records));
+        this.savedMessage.textContent = '已自动保存';
+      }
+
+      payload() {
+        return {
+          schemaVersion: 1,
+          deckId: this.deckId,
+          deckTitle: this.deckTitle,
+          exportedAt: new Date().toISOString(),
+          slides: this.slides.map((slide, index) => {
+            const record = this.records[slide.dataset.slideId] || { status: 'pending', comment: '' };
+            return {
+              slideId: slide.dataset.slideId,
+              slideNumber: index + 1,
+              title: slide.dataset.slideTitle || '',
+              status: record.status,
+              comment: record.comment
+            };
+          })
+        };
+      }
+
+      exportJson() {
+        const blob = new Blob([JSON.stringify(this.payload(), null, 2)], { type: 'application/json;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${this.deckId}-review.json`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      }
+
+      async copyComments() {
+        const text = this.payload().slides
+          .filter(item => item.comment.trim() || item.status !== 'pending')
+          .map(item => `${item.slideId}｜第${item.slideNumber}页｜${item.title}\n状态：${item.status}\n意见：${item.comment || '无'}`)
+          .join('\n\n');
+        await navigator.clipboard.writeText(text || '暂无批注意见');
+        this.savedMessage.textContent = '全部意见已复制';
+      }
+
+      clearCurrent() {
+        const slide = this.slides[this.current];
+        if (!window.confirm(`确定清空 ${slide.dataset.slideId} 的状态和批注吗？`)) return;
+        delete this.records[slide.dataset.slideId];
+        localStorage.setItem(this.storageKey, JSON.stringify(this.records));
+        this.show(this.current);
+        this.savedMessage.textContent = '本页批注已清空';
+      }
+    }
+
+    new ReviewDeck();
+  </script>
+</body>
+</html>

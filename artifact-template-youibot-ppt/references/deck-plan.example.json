@@ -1,0 +1,36 @@
+{
+  "slides": [
+    {
+      "source_slide": 1,
+      "replacements": [
+        {
+          "match": "2026上半年述职报告",
+          "text": "项目阶段总结",
+          "mode": "exact",
+          "occurrence": 1,
+          "required": true
+        },
+        {
+          "match": "产品中心-测试组 XXX",
+          "text": "产品中心 · 2026",
+          "mode": "exact",
+          "occurrence": 1,
+          "required": true
+        }
+      ],
+      "notes": "开场说明汇报目的与覆盖范围。"
+    },
+    {
+      "source_slide": 3,
+      "replacements": [
+        {
+          "match": "年度工作总结",
+          "text": "项目概览",
+          "mode": "exact",
+          "occurrence": 1,
+          "required": true
+        }
+      ]
+    }
+  ]
+}
