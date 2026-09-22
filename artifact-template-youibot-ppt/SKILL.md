@@ -42,6 +42,7 @@ Stop and wait for explicit user approval of the requirements brief and page-leve
 6. Keep review controls outside the slide stage so they never appear in exported slide content.
 7. Render and visually inspect all slides for overflow, overlap, contrast, and company-brand consistency.
 8. Deliver the HTML draft only. Do not generate a PPTX in the same turn.
+9. After writing and validating the HTML, automatically open it in the Codex browser and return a clickable absolute file path, the slide count, and the review status. If automatic opening is unavailable or fails, say so explicitly and still return the clickable path; never leave the user to search for the draft.
 
 ### Gate 2 — HTML final approval
 

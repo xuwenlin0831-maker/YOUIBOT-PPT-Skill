@@ -64,6 +64,12 @@ Treat `needs_changes` as unresolved. `approved` is page-level confirmation only;
 8. For a new deck or any revision that changes a cover or divider, compare `COVER-01` and every `DIVIDER-01` instance with the canonical component at full size and a phone viewport. Treat changed logo placement, copy-zone geometry, ribbon geometry, slogan placement, or typography scale as a defect unless Gate 1 approved a different retained family.
 9. Deliver the updated HTML and summarize resolved comments and any remaining decisions.
 
+## Delivery visibility
+
+- After every new HTML draft or revision passes review QA, open the exact file in the Codex browser.
+- Return a clickable absolute file path, total slide count, version, and whether Gate 2 is still pending.
+- If the browser cannot be opened automatically, report that limitation and still provide the clickable path. Do not merely state that the HTML was generated.
+
 ## Gate 2 rule
 
 Do not generate PPTX until the user explicitly confirms that the HTML is final and authorizes PPT generation. Partial slide approvals and a review JSON containing all `approved` statuses do not replace conversational approval.
