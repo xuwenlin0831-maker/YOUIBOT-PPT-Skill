@@ -62,9 +62,10 @@ PPT主题：
 
 ## 当前状态
 
-培训材料 v0.2 正在执行两道审批门槛。仓库先发布可安装 Skill、安装说明和案例入口；HTML、Word 和 PPTX 将在对应门槛通过后加入。未经明确的 Gate 2 授权不会生成培训 PPTX。
+Skill、安装说明和案例入口已发布。培训材料 v0.2 的 28 页 [HTML 审阅稿](training/YOUIBOT_PPT_Skill培训_HTML审阅稿_v0.2.html)与 31 页 [Word 图文 SOP](training/YOUIBOT_PPT_Skill安装与使用SOP_v0.2.docx)也已加入仓库。需求和页级大纲已通过 Gate 1；HTML 仍待逐页审阅和 Gate 2 明确确认，因此尚未生成培训 PPTX。
+
+团队工具箱另提供此 Skill 的完整 ZIP、安装与调用说明。GitHub 仓库中的 `artifact-template-youibot-ppt/` 仍是正式维护源。
 
 ## 权利说明
 
 本仓库暂未提供开源许可证。除非权利人另行书面授权，不授予复制、修改、分发或商业使用许可。
-
